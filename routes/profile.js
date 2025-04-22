@@ -34,10 +34,26 @@ router.put('/password', async (req, res) => {
 
 router.get('/info', async (req, res) => {
     try {
-        const result = await db.query("SELECT username FROM users WHERE id = $1", [req.user.userId]);
-        res.json({ username: result.rows[0]?.username });
+        const result = await db.query(
+            "SELECT username, phone FROM users WHERE id = $1", 
+            [req.user.userId]
+        );
+        res.json({ 
+            username: result.rows[0]?.username,
+            phone: result.rows[0]?.phone || 'Not set'
+        });
     } catch (err) {
         res.status(500).json({ error: 'Failed to load user info' });
+    }
+});
+
+router.put('/phone', async (req, res) => {
+    const { newPhone } = req.body;
+    try {
+        await db.query("UPDATE users SET phone=$1 WHERE id=$2", [newPhone, req.user.userId]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Server error" });
     }
 });
 

@@ -12,6 +12,7 @@
       <div>
         <h2 class="text-3xl font-bold text-indigo-700">📝 Todo List</h2>
         <p class="text-sm text-gray-500 mt-1">Hello, <span id="todo-username">User</span></p>
+        <p class="text-xs text-gray-400">(Showing 3 most recent todos)</p>
       </div>
       <a href="/profile.html" class="text-sm text-indigo-600 hover:underline">⚙️ Change Profile</a>
     </div>
@@ -52,7 +53,7 @@
       const todos = await res.json();
       const ul = document.getElementById('list');
       ul.innerHTML = '';
-      todos.forEach(todo => {
+      todos.slice(0, 3).forEach(todo => {
         const li = document.createElement('li');
         const title = todo.title || 'No Title';
         const content = todo.content || '';
@@ -73,13 +74,16 @@
       const content = document.getElementById('content').value.trim();
       if (!title || !content) return alert('Please enter both title and content');
 
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const user_id = payload.userId;
+
       await fetch('/todos', {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ title, content })
+        body: JSON.stringify({ title, content, user_id })
       });
       document.getElementById('title').value = '';
       document.getElementById('content').value = '';

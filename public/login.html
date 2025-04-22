@@ -20,24 +20,43 @@
   </div>
   <script>
     async function login() {
-      const res = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: document.getElementById('username').value,
-          password: document.getElementById('password').value
-        })
-      });
-      const data = await res.json();
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        window.location.href = '/todos.html';
-      } else {
-        document.getElementById('error').textContent = data.error || 'Login failed';
-      }
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const errorElem = document.getElementById('error');
+
+        // Validate
+        if (!username || !password) {
+            errorElem.textContent = 'Please enter both username and password';
+            return;
+        }
+
+        try {
+            const res = await fetch('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            
+            if (data.success && data.token) {
+                localStorage.setItem('token', data.token);
+                window.location.href = '/todos.html';
+            } else {
+                errorElem.textContent = data.error || 'Login failed';
+            }
+        } catch (err) {
+            console.error(err);
+            errorElem.textContent = 'Server error. Please try again.';
+        }
     }
+
+    document.getElementById('password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
   </script>
 </body>
 </html>
 
-<!-- Tương tự sẽ tạo cho register.html, todos.html và profile.html với giao diện đẹp -->

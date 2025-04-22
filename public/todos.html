@@ -1,0 +1,107 @@
+<!-- todos.html with TailwindCSS, username display, delete and fully working -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Todos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center px-4">
+  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-3xl font-bold text-indigo-700">📝 Todo List</h2>
+        <p class="text-sm text-gray-500 mt-1">Hello, <span id="todo-username">User</span></p>
+      </div>
+      <a href="/profile.html" class="text-sm text-indigo-600 hover:underline">⚙️ Change Profile</a>
+    </div>
+
+    <ul id="list" class="space-y-3 mb-6"></ul>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <input id="title" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-indigo-400" placeholder="Title">
+      <input id="content" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-indigo-400" placeholder="Content">
+    </div>
+    <button onclick="addTodo()" class="w-full bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition">Add Todo</button>
+
+    <div class="mt-6 text-center">
+      <a href="/login.html" onclick="logout()" class="text-sm text-gray-600 hover:underline">🚪 Logout</a>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
+
+    async function fetchUserInfo() {
+      try {
+        const res = await fetch('/profile/info', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        document.getElementById('todo-username').textContent = data.username || 'User';
+      } catch (err) {
+        document.getElementById('todo-username').textContent = 'User';
+      }
+    }
+
+    async function loadTodos() {
+      const res = await fetch('/todos', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const todos = await res.json();
+      const ul = document.getElementById('list');
+      ul.innerHTML = '';
+      todos.forEach(todo => {
+        const li = document.createElement('li');
+        const title = todo.title || 'No Title';
+        const content = todo.content || '';
+        li.innerHTML = `
+          <div class='p-4 rounded-xl bg-gray-100 border border-gray-200 flex justify-between items-start'>
+            <div>
+              <strong class='text-indigo-700 block'>${title}</strong>
+              <p class='text-gray-700'>${content}</p>
+            </div>
+            <button onclick="deleteTodo(${todo.id})" class="text-sm text-red-600 hover:underline ml-4">🗑️ Delete</button>
+          </div>`;
+        ul.appendChild(li);
+      });
+    }
+
+    async function addTodo() {
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+      if (!title || !content) return alert('Please enter both title and content');
+
+      await fetch('/todos', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title, content })
+      });
+      document.getElementById('title').value = '';
+      document.getElementById('content').value = '';
+      loadTodos();
+    }
+
+    async function deleteTodo(id) {
+      await fetch(`/todos/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+      loadTodos();
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+    }
+
+    fetchUserInfo();
+    loadTodos();
+  </script>
+</body>
+</html>

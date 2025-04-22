@@ -1,0 +1,43 @@
+<!-- Example: Styled Login Page using TailwindCSS -->
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">🔐 Login</h2>
+    <div class="space-y-4">
+      <input id="username" class="w-full p-3 border border-gray-300 rounded" placeholder="Username" />
+      <input id="password" type="password" class="w-full p-3 border border-gray-300 rounded" placeholder="Password" />
+      <button onclick="login()" class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">Login</button>
+    </div>
+    <p class="mt-4 text-center text-sm">Don't have an account? <a href="/register.html" class="text-blue-600 hover:underline">Register</a></p>
+    <p id="error" class="text-red-500 mt-2 text-center"></p>
+  </div>
+  <script>
+    async function login() {
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        window.location.href = '/todos.html';
+      } else {
+        document.getElementById('error').textContent = data.error || 'Login failed';
+      }
+    }
+  </script>
+</body>
+</html>
+
+<!-- Tương tự sẽ tạo cho register.html, todos.html và profile.html với giao diện đẹp -->
